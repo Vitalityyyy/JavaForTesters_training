@@ -32,7 +32,7 @@ public class ApplicationManager {
             driver = new EdgeDriver();
         }
         //System.setProperty("webdriver.gecko.driver", "C:/distr/geckodriver.exe");
-        //driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+        driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
         driver.get("http://localhost/addressbook/");
         sessionHelper = new SessionHelper(driver);
         groupHelper = new GroupHelper(driver);

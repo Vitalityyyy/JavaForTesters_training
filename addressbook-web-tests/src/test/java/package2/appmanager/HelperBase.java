@@ -14,10 +14,15 @@ public class HelperBase {
 
     protected void type(By locator, String text) {
         click(locator);
-        driver.findElement(locator).clear();
-        driver.findElement(locator).sendKeys(text);
+        if (text != null) {
+            String existingText = driver.findElement(locator).getAttribute("value");
+            if (!text.equals(existingText)) {
+                driver.findElement(locator).clear();
+                driver.findElement(locator).sendKeys(text);
+            }
+        }
     }
-    private boolean isElementPresent(By by) {
+    protected boolean isElementPresent(By by) {
         try {
             driver.findElement(by);
             return true;
@@ -26,7 +31,7 @@ public class HelperBase {
         }
     }
 
-    private boolean isAlertPresent() {
+    protected boolean isAlertPresent() {
         try {
             driver.switchTo().alert();
             return true;
