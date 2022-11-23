@@ -1,7 +1,11 @@
 package package2.appmanager;
 
 import org.openqa.selenium.*;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.remote.Browser;
+
 import java.util.concurrent.TimeUnit;
 import static org.testng.Assert.fail;
 
@@ -13,12 +17,22 @@ public class ApplicationManager {
     private ContactHelper contactHelper;
     private String baseUrl;
     private StringBuffer verificationErrors = new StringBuffer();
+    private String browser;
+
+    public ApplicationManager(String browser) {
+        this.browser = browser;
+    }
 
     public void init() {
-        //WebDriverManager.chromedriver().setup();
-        System.setProperty("webdriver.gecko.driver", "C:/distr/geckodriver.exe");
-        driver = new FirefoxDriver();
-        driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+        if (browser.equals(Browser.FIREFOX.browserName())) {
+            driver = new FirefoxDriver();
+        } else if (browser.equals(Browser.CHROME.browserName())) {
+            driver = new ChromeDriver();
+        } else if (browser.equals(Browser.EDGE.browserName())) {
+            driver = new EdgeDriver();
+        }
+        //System.setProperty("webdriver.gecko.driver", "C:/distr/geckodriver.exe");
+        driver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
         driver.get("http://localhost/addressbook/");
         sessionHelper = new SessionHelper(driver);
         groupHelper = new GroupHelper(driver);
