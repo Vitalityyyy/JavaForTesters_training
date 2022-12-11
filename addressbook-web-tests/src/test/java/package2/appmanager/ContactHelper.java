@@ -2,8 +2,10 @@ package package2.appmanager;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import package2.model.ContactData;
-import package2.model.GroupData;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ContactHelper extends HelperBase {
     public ContactHelper(WebDriver driver) {
@@ -25,8 +27,8 @@ public class ContactHelper extends HelperBase {
     public void submitContactCreation() {
         click(By.name("submit"));
     }
-    public void selectContact() {
-        click(By.xpath("//img[@alt='Edit']"));
+    public void selectContact(int index) {
+        driver.findElements(By.xpath("//img[@alt='Edit']")).get(index).click();
     }
     public void deleteSelectedContact() {
         click(By.xpath("(//input[@name='update'])[3]"));
@@ -41,8 +43,25 @@ public class ContactHelper extends HelperBase {
 
     public void createContact(ContactData contactData) {
         initContactCreation();
-        fillContactForm(new ContactData("LastName1","FirstName1","Address1","e1@mail.com","+7(111)-111-11-11"));
+        fillContactForm(contactData);
         submitContactCreation();
         returnToContactPage();
+    }
+
+    public int getContactCount() {
+        return driver.findElements(By.name("entry")).size();
+    }
+
+    public List<ContactData> getContactList() {
+        List<ContactData> contacts = new ArrayList<ContactData>();
+        List<WebElement> elements = driver.findElements(By.name("entry"));
+        for (WebElement element : elements) {
+            String lastName = element.findElements(By.tagName("td")).get(1).getText();
+            String firstName = element.findElements(By.tagName("td")).get(2).getText();
+            int id = Integer.parseInt(element.findElement(By.tagName("input")).getAttribute("id"));
+            ContactData contact = new ContactData(id, lastName, firstName, null, null, null);
+            contacts.add(contact);
+        }
+        return contacts;
     }
 }
