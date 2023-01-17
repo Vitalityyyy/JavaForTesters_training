@@ -1,27 +1,36 @@
 package package2.tests;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 import package2.model.ContactData;
-import package2.model.GroupData;
-
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-
+import package2.model.Contacts;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ContactCreationTests extends TestBase{
 
     @Test
     public void testContactCreation() throws Exception {
-        List<ContactData> before = app.getContactHelper().getContactList();
-        ContactData newContact = new ContactData("LastName111","FirstName111","Address1","e1@mail.com","+7(111)-111-11-11");
-        app.getContactHelper().createContact(newContact);
-        List<ContactData> after = app.getContactHelper().getContactList();
-        Assert.assertEquals(after.size(), before.size() + 1);
+        Contacts before = app.contact().all();
+        ContactData newContact = new ContactData().withLastName("LastName1").withFirstName("FirstName1")
+                .withAddress("Address1").withEmail1("e1@mail.com").withMobilePhone("+7(111)-111-11-11");
+        app.contact().create(newContact);
+        assertThat(app.contact().count(), equalTo(before.size() + 1));
+        Contacts after = app.contact().all();
 
-        newContact.setId(after.stream().max(Comparator.comparingInt(ContactData::getId)).get().getId());
-        before.add(newContact);
-        Assert.assertEquals(new HashSet<Object>(before), new HashSet<Object>(after));
+        //newContact.withId(after.stream().max(Comparator.comparingInt(ContactData::getId)).get().getId());
+        //before.add(newContact);
+        //Assert.assertEquals(before, after);
+        assertThat(after, equalTo(
+                before.withAdded(newContact.withId(after.stream().mapToInt((c) -> c.getId()).max().getAsInt()))));
+    }
+
+    @Test
+    public void testBadContactCreation() throws Exception {
+        Contacts before = app.contact().all();
+        ContactData newContact = new ContactData().withLastName("LastName1'").withFirstName("FirstName1").withAddress("Address1").withEmail1("e1@mail.com").withMobilePhone("+7(111)-111-11-11");
+        app.contact().create(newContact);
+        assertThat(app.contact().count(), equalTo(before.size()));
+        Contacts after = app.contact().all();
+        assertThat(after, equalTo(before));
     }
 }
