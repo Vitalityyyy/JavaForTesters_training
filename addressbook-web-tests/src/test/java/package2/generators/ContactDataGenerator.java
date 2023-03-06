@@ -46,17 +46,22 @@ public class ContactDataGenerator {
         Writer writer = new FileWriter(file);
         for (ContactData contact : contacts) {
             writer.write(String.format("%s;%s;%s;%s;%s\n", contact.getLastName(), contact.getFirstName(), contact.getAddress(),
-                    contact.getEmail1(), contact.getMobilePhone()));
+                    contact.getEmail1(), contact.getMobilePhone(), contact.getPhoto()));
         }
         writer.close();
     }
 
     private static List<ContactData> generateContacts(int count) {
+        File photo = new File ("src/test/resources/stru.png");
         List<ContactData> contacts = new ArrayList<ContactData>();
         for (int i = 0; i < count; i++){
-            contacts.add(new ContactData().withLastName(String.format("Lastname %s", i))
-                    .withFirstName(String.format("Firstname %s", i)).withAddress(String.format("Address %s", i))
-                    .withEmail1(String.format("e%s@mail.ru", i)).withMobilePhone(String.format("+7-999-999-99-0%s", i)));
+            contacts.add(new ContactData()
+                    .withLastName(String.format("Lastname %s", i))
+                    .withFirstName(String.format("Firstname %s", i))
+                    .withAddress(String.format("Address %s", i))
+                    .withEmail1(String.format("e%s@mail.ru", i))
+                    .withMobilePhone(String.format("+7-999-999-99-0%s", i))
+                    .withPhoto(photo));
         }
         return contacts;
     }
