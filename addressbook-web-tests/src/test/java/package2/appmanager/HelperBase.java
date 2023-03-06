@@ -2,6 +2,8 @@ package package2.appmanager;
 
 import org.openqa.selenium.*;
 
+import java.io.File;
+
 public class HelperBase {
     protected WebDriver driver;
     public HelperBase(WebDriver driver) {
@@ -20,6 +22,11 @@ public class HelperBase {
                 driver.findElement(locator).clear();
                 driver.findElement(locator).sendKeys(text);
             }
+        }
+    }
+    protected void attach(By locator, File file) {
+        if (file != null) {
+            driver.findElement(locator).sendKeys(file.getAbsolutePath());
         }
     }
     protected boolean isElementPresent(By by) {
