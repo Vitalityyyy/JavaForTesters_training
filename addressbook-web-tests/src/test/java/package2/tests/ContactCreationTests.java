@@ -6,6 +6,7 @@ import com.thoughtworks.xstream.XStream;
 import org.testng.annotations.*;
 import package2.model.ContactData;
 import package2.model.Contacts;
+import package2.model.GroupData;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -19,6 +20,24 @@ import static org.hamcrest.MatcherAssert.*;
 public class ContactCreationTests extends TestBase {
 
     @DataProvider
+    public Iterator<Object[]> validContactsFromCsv() throws IOException {
+        List<Object[]> list = new ArrayList<Object[]>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File("src/test/resources/contacts.csv")))) {
+            String line = reader.readLine();
+            while (line != null) {
+                String[] split = line.split((";"));
+                list.add(new Object[]{new ContactData()
+                        .withLastName(split[0])
+                        .withFirstName(split[1])
+                        .withAddress(split[2])
+                        .withEmail1(split[3])
+                        .withMobilePhone(split[4])});
+                line = reader.readLine();
+            }
+            return list.iterator();
+        }
+    }
+    @DataProvider
     public Iterator<Object[]> validContactsFromXml() throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/contacts.xml"))) {
             String xml = "";
@@ -28,23 +47,23 @@ public class ContactCreationTests extends TestBase {
                 line = reader.readLine();
             }
             XStream xstream = new XStream();
-            xstream.processAnnotations(ContactData.class);
+            xstream.processAnnotations(GroupData.class);
             List<ContactData> contacts = (List<ContactData>) xstream.fromXML(xml.toString());
-            return contacts.stream().map((g) -> new Object[] {g}).collect(Collectors.toList()).iterator();
+            return contacts.stream().map((g) -> new Object[]{g}).toList().iterator();
         }
     }
     @DataProvider
     public Iterator<Object[]> validContactsFromJson() throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/contacts.json"))) {
-            String json = "";
+            StringBuilder json = new StringBuilder();
             String line = reader.readLine();
             while (line != null) {
-                json += line;
+                json.append(line);
                 line = reader.readLine();
             }
             Gson gson = new Gson();
             List<ContactData> contacts = gson.fromJson(json.toString(), new TypeToken<List<ContactData>>() {}.getType());
-            return contacts.stream().map((g) -> new Object[] {g}).collect(Collectors.toList()).iterator();
+            return contacts.stream().map((g) -> new Object[]{g}).toList().iterator();
         }
     }
     @DataProvider
@@ -56,7 +75,7 @@ public class ContactCreationTests extends TestBase {
         return list.iterator();
     }
 
-    @Test(dataProvider = "validContactsFromJson")
+    @Test(dataProvider = "validContactsFromCsv")
     public void testContactCreation(ContactData contact) throws Exception {
         Contacts before = app.contact().all();
         contact.withPhoto(new File ("src/test/resources/stru.png"));
@@ -67,7 +86,7 @@ public class ContactCreationTests extends TestBase {
         //before.add(contact);
         //Assert.assertEquals(before, after);
         assertThat(after, equalTo(
-                before.withAdded(contact.withId(after.stream().mapToInt((c) -> c.getId()).max().getAsInt()))));
+                before.withAdded(contact.withId(after.stream().mapToInt(ContactData::getId).max().getAsInt()))));
     }
 
     @Test(dataProvider = "invalidContacts", enabled = false)

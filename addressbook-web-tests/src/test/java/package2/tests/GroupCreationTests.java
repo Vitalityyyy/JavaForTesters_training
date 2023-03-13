@@ -21,30 +21,30 @@ public class GroupCreationTests extends TestBase {
     @DataProvider
     public Iterator<Object[]> validGroupsFromXml() throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/groups.xml"))) {
-            String xml = "";
+            StringBuilder xml = new StringBuilder();
             String line = reader.readLine();
             while (line != null) {
-                xml += line;
+                xml.append(line);
                 line = reader.readLine();
             }
             XStream xstream = new XStream();
             xstream.processAnnotations(GroupData.class);
             List<GroupData> groups = (List<GroupData>) xstream.fromXML(xml.toString());
-            return groups.stream().map((g) -> new Object[] {g}).collect(Collectors.toList()).iterator();
+            return groups.stream().map((g) -> new Object[]{g}).toList().iterator();
         }
     }
     @DataProvider
     public Iterator<Object[]> validGroupsFromJson() throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/groups.json"))) {
-            String json = "";
+            StringBuilder json = new StringBuilder();
             String line = reader.readLine();
             while (line != null) {
-                json += line;
+                json.append(line);
                 line = reader.readLine();
             }
             Gson gson = new Gson();
             List<GroupData> groups = gson.fromJson(json.toString(), new TypeToken<List<GroupData>>() {}.getType());
-            return groups.stream().map((g) -> new Object[] {g}).collect(Collectors.toList()).iterator();
+            return groups.stream().map((g) -> new Object[]{g}).toList().iterator();
         }
     }
     @DataProvider
@@ -70,7 +70,7 @@ public class GroupCreationTests extends TestBase {
         //after.sort(byId);
         //Assert.assertEquals(before, after);
         assertThat(after, equalTo(
-                before.withAdded(group.withId(after.stream().mapToInt((g) -> g.getId()).max().getAsInt()))));
+                before.withAdded(group.withId(after.stream().mapToInt(GroupData::getId).max().getAsInt()))));
     }
     @Test(dataProvider = "invalidGroups", enabled = false)
     public void testBadGroupCreation(GroupData group) throws Exception {
