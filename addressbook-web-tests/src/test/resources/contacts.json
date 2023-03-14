@@ -1,0 +1,23 @@
+[
+  {
+    "lastName": "Lastname 0",
+    "firstName": "Firstname 0",
+    "address": "Address 0",
+    "email1": "e0@mail.ru",
+    "mobilePhone": "+7-999-999-99-00"
+  },
+  {
+    "lastName": "Lastname 1",
+    "firstName": "Firstname 1",
+    "address": "Address 1",
+    "email1": "e1@mail.ru",
+    "mobilePhone": "+7-999-999-99-01"
+  },
+  {
+    "lastName": "Lastname 2",
+    "firstName": "Firstname 2",
+    "address": "Address 2",
+    "email1": "e2@mail.ru",
+    "mobilePhone": "+7-999-999-99-02"
+  }
+]

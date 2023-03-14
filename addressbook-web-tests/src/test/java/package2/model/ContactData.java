@@ -1,20 +1,49 @@
 package package2.model;
 
+import com.google.gson.annotations.Expose;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
+import java.io.File;
 import java.util.Objects;
 
+@XStreamAlias("contact")
 public class ContactData {
+    @Expose
     private String lastName;
+    @Expose
     private String firstName;
+    @Expose
     private String address;
+    @Expose
     private String email1;
+    @XStreamOmitField
     private String email2;
+    @XStreamOmitField
     private String email3;
+    @XStreamOmitField
     private String allEmails;
+    @XStreamOmitField
     private String homePhone;
+    @Expose
     private String mobilePhone;
+    @XStreamOmitField
     private String workPhone;
+    @XStreamOmitField
     private String allPhones;
+    @XStreamOmitField
     private int id = 0;
+    @Expose
+    private File photo;
+
+    public File getPhoto() {
+        return photo;
+    }
+
+    public ContactData withPhoto(File photo) {
+        this.photo = photo;
+        return this;
+    }
 
     public String getLastName() {
         return lastName;

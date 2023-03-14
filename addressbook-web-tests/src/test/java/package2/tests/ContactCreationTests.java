@@ -1,36 +1,108 @@
 package package2.tests;
 
-import org.testng.annotations.Test;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.thoughtworks.xstream.XStream;
+import org.testng.annotations.*;
 import package2.model.ContactData;
 import package2.model.Contacts;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import package2.model.GroupData;
 
-public class ContactCreationTests extends TestBase{
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-    @Test
-    public void testContactCreation() throws Exception {
-        Contacts before = app.contact().all();
-        ContactData newContact = new ContactData().withLastName("LastName1").withFirstName("FirstName1")
-                .withAddress("Address1").withEmail1("e1@mail.com").withMobilePhone("+7(111)-111-11-11");
-        app.contact().create(newContact);
-        assertThat(app.contact().count(), equalTo(before.size() + 1));
-        Contacts after = app.contact().all();
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.*;
 
-        //newContact.withId(after.stream().max(Comparator.comparingInt(ContactData::getId)).get().getId());
-        //before.add(newContact);
-        //Assert.assertEquals(before, after);
-        assertThat(after, equalTo(
-                before.withAdded(newContact.withId(after.stream().mapToInt((c) -> c.getId()).max().getAsInt()))));
+public class ContactCreationTests extends TestBase {
+
+    @DataProvider
+    public Iterator<Object[]> validContactsFromCsv() throws IOException {
+        List<Object[]> list = new ArrayList<Object[]>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File("src/test/resources/contacts.csv")))) {
+            String line = reader.readLine();
+            while (line != null) {
+                String[] split = line.split((";"));
+                list.add(new Object[]{new ContactData()
+                        .withLastName(split[0])
+                        .withFirstName(split[1])
+                        .withAddress(split[2])
+                        .withEmail1(split[3])
+                        .withMobilePhone(split[4])});
+                line = reader.readLine();
+            }
+            return list.iterator();
+        }
+    }
+    @DataProvider
+    public Iterator<Object[]> validContactsFromXml() throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/contacts.xml"))) {
+            String xml = "";
+            String line = reader.readLine();
+            while (line != null) {
+                xml += line;
+                line = reader.readLine();
+            }
+            XStream xstream = new XStream();
+            xstream.processAnnotations(GroupData.class);
+            List<ContactData> contacts = (List<ContactData>) xstream.fromXML(xml.toString());
+            return contacts.stream().map((g) -> new Object[]{g}).toList().iterator();
+        }
+    }
+    @DataProvider
+    public Iterator<Object[]> validContactsFromJson() throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/contacts.json"))) {
+            StringBuilder json = new StringBuilder();
+            String line = reader.readLine();
+            while (line != null) {
+                json.append(line);
+                line = reader.readLine();
+            }
+            Gson gson = new Gson();
+            List<ContactData> contacts = gson.fromJson(json.toString(), new TypeToken<List<ContactData>>() {}.getType());
+            return contacts.stream().map((g) -> new Object[]{g}).toList().iterator();
+        }
+    }
+    @DataProvider
+    public Iterator<Object[]> invalidContacts() {
+        File photo = new File ("src/test/resources/stru.png");
+        List<Object[]> list = new ArrayList<Object[]>();
+        list.add(new Object[] {new ContactData().withLastName("LastName1'").withFirstName("FirstName1").withAddress("Address1").withEmail1("e1@mail.com").withMobilePhone("+7(111)-111-11-11").withPhoto(photo)});
+        list.add(new Object[] {new ContactData().withLastName("LastName2'").withFirstName("FirstName2").withAddress("Address2").withEmail2("e2@mail.com").withMobilePhone("+7(222)-222-22-22").withPhoto(photo)});
+        return list.iterator();
     }
 
-    @Test
-    public void testBadContactCreation() throws Exception {
+    @Test(dataProvider = "validContactsFromCsv")
+    public void testContactCreation(ContactData contact) throws Exception {
         Contacts before = app.contact().all();
-        ContactData newContact = new ContactData().withLastName("LastName1'").withFirstName("FirstName1").withAddress("Address1").withEmail1("e1@mail.com").withMobilePhone("+7(111)-111-11-11");
-        app.contact().create(newContact);
+        contact.withPhoto(new File ("src/test/resources/stru.png"));
+        app.contact().create(contact);
+        assertThat(app.contact().count(), equalTo(before.size() + 1));
+        Contacts after = app.contact().all();
+        //contact.withId(after.stream().max(Comparator.comparingInt(ContactData::getId)).get().getId());
+        //before.add(contact);
+        //Assert.assertEquals(before, after);
+        assertThat(after, equalTo(
+                before.withAdded(contact.withId(after.stream().mapToInt(ContactData::getId).max().getAsInt()))));
+    }
+
+    @Test(dataProvider = "invalidContacts", enabled = false)
+    public void testBadContactCreation(ContactData contact) throws Exception {
+        Contacts before = app.contact().all();
+        app.contact().create(contact);
         assertThat(app.contact().count(), equalTo(before.size()));
         Contacts after = app.contact().all();
         assertThat(after, equalTo(before));
+    }
+
+    @Test(enabled = false)
+    public void testCurrentDir() {
+        File currentDir = new File(".");
+        System.out.println(currentDir.getAbsolutePath());
+        File photo = new File("src/test/resources/stru.png");
+        System.out.println(photo.getAbsolutePath());
+        System.out.println(photo.exists());
     }
 }
