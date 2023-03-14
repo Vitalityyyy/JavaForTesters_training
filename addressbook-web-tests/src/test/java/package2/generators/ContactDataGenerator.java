@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ContactDataGenerator {
-    @Parameter(names = "-c", description = "Contact count") // -c 3 -f src/test/resources/contacts.xml -d xml
+    @Parameter(names = "-c", description = "Contact count")
     public int count;
 
     @Parameter(names = "-f", description = "Target file")
@@ -25,10 +25,6 @@ public class ContactDataGenerator {
     public String format;
 
     public static void main (String[] args) throws IOException {
-//        int count = Integer.parseInt(args[0]); // 3 src/test/resources/contacts.xml xml
-//        File file = new File(args[1]);
-//        List<ContactData> contacts = generateContacts(count);
-//        save(contacts, file);
         ContactDataGenerator generator = new ContactDataGenerator();
         JCommander jCommander = new JCommander(generator);
         try {

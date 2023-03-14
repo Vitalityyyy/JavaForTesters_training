@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GroupDataGenerator {
-    @Parameter(names = "-c", description = "Group count") //-c 5 -f src/test/resources/groups.xml -d xml
+    @Parameter(names = "-c", description = "Group count")
     public int count;
 
     @Parameter(names = "-f", description = "Target file")
@@ -25,10 +25,6 @@ public class GroupDataGenerator {
     public String format;
 
     public static void main (String[] args) throws IOException {
-//        int count = Integer.parseInt(args[0]); // 5 src/test/resources/groups.xml
-//        File file = new File(args[1]);
-//        List<GroupData> groups = generateGroups(count);
-//        saveAsXml(groups, file);
         GroupDataGenerator generator = new GroupDataGenerator();
         JCommander jCommander = new JCommander(generator);
         try {
