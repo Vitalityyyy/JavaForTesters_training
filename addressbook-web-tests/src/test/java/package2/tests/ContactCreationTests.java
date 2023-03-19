@@ -76,11 +76,11 @@ public class ContactCreationTests extends TestBase {
 
     @Test(dataProvider = "validContactsFromCsv")
     public void testContactCreation(ContactData contact) throws Exception {
-        Contacts before = app.contact().all();
+        Contacts before = app.db().contacts();
         contact.withPhoto(new File ("src/test/resources/stru.png"));
         app.contact().create(contact);
         assertThat(app.contact().count(), equalTo(before.size() + 1));
-        Contacts after = app.contact().all();
+        Contacts after = app.db().contacts();
         //contact.withId(after.stream().max(Comparator.comparingInt(ContactData::getId)).get().getId());
         //before.add(contact);
         //Assert.assertEquals(before, after);
@@ -90,10 +90,10 @@ public class ContactCreationTests extends TestBase {
 
     @Test(dataProvider = "invalidContacts", enabled = false)
     public void testBadContactCreation(ContactData contact) throws Exception {
-        Contacts before = app.contact().all();
+        Contacts before = app.db().contacts();
         app.contact().create(contact);
         assertThat(app.contact().count(), equalTo(before.size()));
-        Contacts after = app.contact().all();
+        Contacts after = app.db().contacts();
         assertThat(after, equalTo(before));
     }
 
