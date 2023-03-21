@@ -27,5 +27,6 @@ public class GroupDeletionTests extends TestBase {
         //before.remove(deletedGroup);
         //Assert.assertEquals(before, after);
         assertThat(after, equalTo(before.without(deletedGroup)));
+        verifyGroupListInUI();
     }
 }

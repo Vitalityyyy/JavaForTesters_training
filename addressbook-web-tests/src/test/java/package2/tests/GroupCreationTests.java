@@ -11,7 +11,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
@@ -71,6 +70,7 @@ public class GroupCreationTests extends TestBase {
         //Assert.assertEquals(before, after);
         assertThat(after, equalTo(
                 before.withAdded(group.withId(after.stream().mapToInt(GroupData::getId).max().getAsInt()))));
+        verifyGroupListInUI();
     }
     @Test(dataProvider = "invalidGroups", enabled = false)
     public void testBadGroupCreation(GroupData group) throws Exception {
