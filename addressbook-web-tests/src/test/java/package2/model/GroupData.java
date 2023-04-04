@@ -7,11 +7,10 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import org.hibernate.annotations.Type;
 
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @XStreamAlias("group")
 @Entity
@@ -29,32 +28,17 @@ public class GroupData {
     @Type(type = "text")
     private String footer;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        GroupData groupData = (GroupData) o;
-
-        if (id != groupData.id) return false;
-        if (!Objects.equals(name, groupData.name)) return false;
-        if (!Objects.equals(header, groupData.header)) return false;
-        return Objects.equals(footer, groupData.footer);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (header != null ? header.hashCode() : 0);
-        result = 31 * result + (footer != null ? footer.hashCode() : 0);
-        result = 31 * result + id;
-        return result;
-    }
-
     @XStreamOmitField
     @Id
     @Column(name = "group_id")
     private int id = Integer.MAX_VALUE;
+
+    @ManyToMany(mappedBy = "groups")
+    private Set<ContactData> contacts = new HashSet<ContactData>();
+
+    public Contacts getContacts() {
+        return new Contacts(contacts);
+    }
 
     public String getName() {
         return name;
@@ -98,4 +82,25 @@ public class GroupData {
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        GroupData groupData = (GroupData) o;
+
+        if (id != groupData.id) return false;
+        if (!Objects.equals(name, groupData.name)) return false;
+        if (!Objects.equals(header, groupData.header)) return false;
+        return Objects.equals(footer, groupData.footer);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (header != null ? header.hashCode() : 0);
+        result = 31 * result + (footer != null ? footer.hashCode() : 0);
+        result = 31 * result + id;
+        return result;
+    }
 }

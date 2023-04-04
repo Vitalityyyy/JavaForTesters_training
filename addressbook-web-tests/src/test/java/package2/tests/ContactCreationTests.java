@@ -7,6 +7,7 @@ import org.testng.annotations.*;
 import package2.model.ContactData;
 import package2.model.Contacts;
 import package2.model.GroupData;
+import package2.model.Groups;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -74,10 +75,18 @@ public class ContactCreationTests extends TestBase {
         return list.iterator();
     }
 
+    @BeforeMethod
+    public void ensurePreconditions() {
+        if (app.db().groups().size() == 0) {
+            app.goTo().groupPage();
+            app.group().create(new GroupData().withName("Group111"));
+        }
+    }
     @Test(dataProvider = "validContactsFromCsv")
     public void testContactCreation(ContactData contact) throws Exception {
+        Groups groups = app.db().groups();
         Contacts before = app.db().contacts();
-        contact.withPhoto(new File ("src/test/resources/stru.png"));
+        contact.withPhoto(new File ("src/test/resources/stru.png")).inGroup(groups.iterator().next());
         app.contact().create(contact);
         assertThat(app.contact().count(), equalTo(before.size() + 1));
         Contacts after = app.db().contacts();
