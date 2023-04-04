@@ -3,45 +3,81 @@ package package2.model;
 import com.google.gson.annotations.Expose;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import org.hibernate.annotations.Type;
 
+
+import javax.persistence.*;
 import java.io.File;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @XStreamAlias("contact")
+@Entity
+@Table(name = "addressbook")
 public class ContactData {
     @Expose
+    @Column(name = "lastname")
     private String lastName;
     @Expose
+    @Column(name = "firstname")
     private String firstName;
     @Expose
+    @Type(type = "text")
     private String address;
     @Expose
+    @Column(name = "email")
+    @Type(type = "text")
     private String email1;
+    @Expose
     @XStreamOmitField
+    @Type(type = "text")
     private String email2;
+    @Expose
     @XStreamOmitField
+    @Type(type = "text")
     private String email3;
     @XStreamOmitField
+    @Transient
     private String allEmails;
     @XStreamOmitField
+    @Column(name = "home")
+    @Type(type = "text")
     private String homePhone;
     @Expose
+    @Column(name = "mobile")
+    @Type(type = "text")
     private String mobilePhone;
     @XStreamOmitField
+    @Column(name = "work")
+    @Type(type = "text")
     private String workPhone;
     @XStreamOmitField
+    @Transient
     private String allPhones;
     @XStreamOmitField
+    @Id
+    @Column(name = "id")
     private int id = 0;
-    @Expose
-    private File photo;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "address_in_groups", joinColumns = @JoinColumn(name = "id"), inverseJoinColumns = @JoinColumn(name = "group_id"))
+    private Set<GroupData> groups = new HashSet<GroupData>();
+
+    @XStreamOmitField
+    @Column(name = "photo")
+    @Type(type = "text")
+    private String photo;
 
     public File getPhoto() {
-        return photo;
+        if (photo == null) {
+            return null;
+        }
+        return new File (photo);
     }
 
     public ContactData withPhoto(File photo) {
-        this.photo = photo;
+        this.photo = photo.getPath();
         return this;
     }
 
@@ -74,6 +110,9 @@ public class ContactData {
     public String getAllEmails() { return allEmails; }
     public int getId() {
         return id;
+    }
+    public Groups getGroups() {
+        return new Groups(groups);
     }
 
     public ContactData withId(int id) {
@@ -135,6 +174,11 @@ public class ContactData {
         return this;
     }
 
+    public ContactData inGroup(GroupData group) {
+        groups.add(group);
+        return this;
+    }
+
     @Override
     public String toString() {
         return "ContactData{" +
@@ -153,13 +197,19 @@ public class ContactData {
 
         if (id != that.id) return false;
         if (!Objects.equals(lastName, that.lastName)) return false;
-        return Objects.equals(firstName, that.firstName);
+        if (!Objects.equals(firstName, that.firstName)) return false;
+        if (!Objects.equals(address, that.address)) return false;
+        if (!Objects.equals(email1, that.email1)) return false;
+        return Objects.equals(mobilePhone, that.mobilePhone);
     }
 
     @Override
     public int hashCode() {
         int result = lastName != null ? lastName.hashCode() : 0;
         result = 31 * result + (firstName != null ? firstName.hashCode() : 0);
+        result = 31 * result + (address != null ? address.hashCode() : 0);
+        result = 31 * result + (email1 != null ? email1.hashCode() : 0);
+        result = 31 * result + (mobilePhone != null ? mobilePhone.hashCode() : 0);
         result = 31 * result + id;
         return result;
     }

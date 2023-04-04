@@ -3,9 +3,17 @@ package package2.appmanager;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
+import org.testng.Assert;
 import package2.model.ContactData;
 import package2.model.Contacts;
+import package2.model.GroupData;
+
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ContactHelper extends HelperBase {
     public ContactHelper(WebDriver driver) {
@@ -17,7 +25,7 @@ public class ContactHelper extends HelperBase {
     public void initContactCreation() {
         click(By.linkText("add new"));
     }
-    public void fillContactForm(ContactData contactData) {
+    public void fillContactForm(ContactData contactData, boolean creation) {
         type(By.name("lastname"), contactData.getLastName());
         type(By.name("firstname"), contactData.getFirstName());
         type(By.name("address"), contactData.getAddress());
@@ -28,6 +36,12 @@ public class ContactHelper extends HelperBase {
         type(By.name("mobile"), contactData.getMobilePhone());
         type(By.name("work"), contactData.getWorkPhone());
         attach(By.name("photo"), contactData.getPhoto());
+        if (creation && contactData.getGroups().size() > 0) {
+            Assert.assertTrue(contactData.getGroups().size() == 1);
+            new Select(driver.findElement(By.name("new_group"))).selectByVisibleText(contactData.getGroups().iterator().next().getName());
+        } else {
+//            Assert.assertFalse(isElementPresent(By.name("new_group")));
+        }
     }
     public void submitContactCreation() {
         click(By.name("submit"));
@@ -50,8 +64,9 @@ public class ContactHelper extends HelperBase {
     }
 
     public void create(ContactData contactData) {
+        filterBy("[all]");
         initContactCreation();
-        fillContactForm(contactData);
+        fillContactForm(contactData, true);
         submitContactCreation();
         returnToContactPage();
         contactCache = null;
@@ -59,7 +74,7 @@ public class ContactHelper extends HelperBase {
 
     public void modify(ContactData contact) {
         initContactModificationById(contact.getId());
-        fillContactForm(contact);
+        fillContactForm(contact, false);
         submitContactModification();
         contactCache = null;
     }
@@ -110,5 +125,53 @@ public class ContactHelper extends HelperBase {
         driver.navigate().back();
         return new ContactData().withId(contact.getId()).withFirstName(firstname).withLastName(lastname).withAddress(address)
                 .withHomePhone(home).withMobilePhone(mobile).withWorkPhone(work).withEmail1(email1).withEmail2(email2).withEmail3(email3);
+    }
+
+    public void addGroupToContact(ContactData contact, GroupData group) {
+        click(By.cssSelector(String.format("[type=checkbox][value='%s']", contact.getId())));
+        new Select(driver.findElement(By.name("to_group"))).selectByVisibleText(group.getName());
+        click(By.name("add"));
+    }
+    public void removeContactFromGroup(ContactData contact, GroupData group) {
+        new Select(driver.findElement(By.name("group"))).selectByVisibleText(group.getName());
+        click(By.cssSelector(String.format("[type=checkbox][value='%s']", contact.getId())));
+        click(By.name("remove"));
+    }
+
+    public void filterByGroup(GroupData group) {
+        new Select(driver.findElement(By.name("group"))).selectByVisibleText(group.getName());
+        contactCache = null;;
+    }
+
+    public void filterBy(String option) {
+        new Select(driver.findElement(By.name("group"))).selectByVisibleText(option);
+        contactCache = null;;
+    }
+
+    public Contacts getContactsNotInGroup(Contacts contacts, Contacts grContacts) {
+        contacts.removeAll(grContacts);
+        return contacts;
+    }
+
+    public int getId(String lastName) {
+        WebElement checkbox = driver.findElement(By.xpath("//td[contains(text(), '" + lastName + "')]/ancestor::tr[@name='entry']//input[@type='checkbox']"));
+        int id = Integer.parseInt(checkbox.getAttribute("value"));
+        return id;
+    }
+
+    public void verifyContactIsAddedToGroup(ContactData contact, Contacts grContactsBefore) {
+        Contacts grContactsAfter = all();
+        assertThat(grContactsAfter, equalTo(grContactsBefore.withAdded(contact).stream().map((c) -> new ContactData()
+                .withId(c.getId())
+                .withLastName(c.getLastName())
+                .withFirstName(c.getFirstName())
+                .withAddress(c.getAddress())
+                .withAllEmails(c.getAllEmails())
+                .withAllPhones(c.getAllPhones())).collect(Collectors.toSet())));
+    }
+
+    public void verifyContactIsRemovedFromGroup(ContactData contact, Contacts grContactsBefore) {
+        Contacts grContactsAfter = all();
+        assertThat(grContactsAfter, equalTo(grContactsBefore.without(contact)));
     }
 }

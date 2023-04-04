@@ -7,6 +7,7 @@ import org.testng.annotations.*;
 import package2.model.ContactData;
 import package2.model.Contacts;
 import package2.model.GroupData;
+import package2.model.Groups;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -74,26 +75,35 @@ public class ContactCreationTests extends TestBase {
         return list.iterator();
     }
 
+    @BeforeMethod
+    public void ensurePreconditions() {
+        if (app.db().groups().size() == 0) {
+            app.goTo().groupPage();
+            app.group().create(new GroupData().withName("Group111"));
+        }
+    }
     @Test(dataProvider = "validContactsFromCsv")
     public void testContactCreation(ContactData contact) throws Exception {
-        Contacts before = app.contact().all();
-        contact.withPhoto(new File ("src/test/resources/stru.png"));
+        Groups groups = app.db().groups();
+        Contacts before = app.db().contacts();
+        contact.withPhoto(new File ("src/test/resources/stru.png")).inGroup(groups.iterator().next());
         app.contact().create(contact);
         assertThat(app.contact().count(), equalTo(before.size() + 1));
-        Contacts after = app.contact().all();
+        Contacts after = app.db().contacts();
         //contact.withId(after.stream().max(Comparator.comparingInt(ContactData::getId)).get().getId());
         //before.add(contact);
         //Assert.assertEquals(before, after);
         assertThat(after, equalTo(
                 before.withAdded(contact.withId(after.stream().mapToInt(ContactData::getId).max().getAsInt()))));
+        verifyContactListInUI();
     }
 
     @Test(dataProvider = "invalidContacts", enabled = false)
     public void testBadContactCreation(ContactData contact) throws Exception {
-        Contacts before = app.contact().all();
+        Contacts before = app.db().contacts();
         app.contact().create(contact);
         assertThat(app.contact().count(), equalTo(before.size()));
-        Contacts after = app.contact().all();
+        Contacts after = app.db().contacts();
         assertThat(after, equalTo(before));
     }
 
